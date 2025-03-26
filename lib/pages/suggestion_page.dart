@@ -3,7 +3,10 @@ import '../utils/api_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SuggestionPage extends StatefulWidget {
-  const SuggestionPage({super.key});
+  final dynamic subProfile;
+  // หรือถ้าต้องการระบุ type ให้ชัดเจน: final Map<String, dynamic> subProfile;
+
+  const SuggestionPage({super.key, required this.subProfile});
 
   @override
   State<SuggestionPage> createState() => _SuggestionPageState();
@@ -11,18 +14,29 @@ class SuggestionPage extends StatefulWidget {
 
 class _SuggestionPageState extends State<SuggestionPage> {
   final TextEditingController _controller = TextEditingController();
-  final ApiService apiService = ApiService(baseUrl: 'https://api.openweathermap.org/data/2.5');
+  final ApiService apiService =
+      ApiService(baseUrl: 'https://api.openweathermap.org/data/2.5');
   String _weatherInfo = '';
   String _weatherIcon = '';
   String _cityName = '';
 
   Future<void> _fetchWeather(String city) async {
-    await dotenv.load();
+    // สมมุติว่า dotenv.load() ถูกเรียกใน main.dart แล้ว
     final apiKey = dotenv.env['API_KEY'];
+    if (apiKey == null || apiKey.isEmpty) {
+      setState(() {
+        _weatherInfo = 'API Key is missing!';
+        _weatherIcon = '';
+      });
+      return;
+    }
     try {
-      final response = await apiService.get('/weather?q=$city&units=metric&appid=$apiKey');
-      final sunrise = DateTime.fromMillisecondsSinceEpoch(response['sys']['sunrise'] * 1000);
-      final sunset = DateTime.fromMillisecondsSinceEpoch(response['sys']['sunset'] * 1000);
+      final response = await apiService.get(
+          '/weather?q=$city&units=metric&appid=$apiKey');
+      final sunrise = DateTime.fromMillisecondsSinceEpoch(
+          response['sys']['sunrise'] * 1000);
+      final sunset = DateTime.fromMillisecondsSinceEpoch(
+          response['sys']['sunset'] * 1000);
       setState(() {
         _cityName = response['name'];
         _weatherInfo = 'Temperature: ${response['main']['temp']}°C\n'
@@ -67,12 +81,18 @@ class _SuggestionPageState extends State<SuggestionPage> {
 
   @override
   Widget build(BuildContext context) {
+    // ดึงชื่อ subProfile ที่ส่งเข้ามา
+    String profileName = widget.subProfile != null &&
+            widget.subProfile['name'] != null
+        ? widget.subProfile['name'].toString()
+        : 'Unknown';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Weather Suggestion'),
+        title: Text('Weather Suggestion for $profileName'),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [

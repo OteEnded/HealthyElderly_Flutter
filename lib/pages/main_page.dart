@@ -5,7 +5,12 @@ import 'information_page.dart';
 import 'profile_page.dart';
 
 class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+  final dynamic subProfile; // หรือใช้ Map<String, dynamic>
+  
+  const MainPage({
+    super.key,
+    required this.subProfile,
+  });
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -13,24 +18,29 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
+  late final List<Widget> _pages;
 
-  // List of pages for navigation
-  final List<Widget> _pages = const [
-    DashboardPage(),
-    SuggestionPage(),
-    InformationPage(),
-    ProfilePage(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // สร้างหน้า pages พร้อมส่งข้อมูล subProfile ไปด้วย
+    _pages = [
+      DashboardPage(subProfile: widget.subProfile),
+      SuggestionPage(subProfile: widget.subProfile),
+      InformationPage(subProfile: widget.subProfile),
+      ProfilePage(subProfile: widget.subProfile),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_currentIndex], // Display the selected page
+      body: _pages[_currentIndex], // แสดงหน้าตาม index ที่เลือก
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        onTap: (index) {
+        onTap: (int index) {
           setState(() {
-            _currentIndex = index; // Update the selected index
+            _currentIndex = index;
           });
         },
         selectedItemColor: Theme.of(context).colorScheme.primary,

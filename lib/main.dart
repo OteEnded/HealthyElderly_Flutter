@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:healthy_elderly/pages/login_page.dart';
 import 'pages/home_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 // import 'pages/dashboard_page.dart';
@@ -36,7 +37,7 @@ class HealthyElderlyApp extends StatelessWidget {
         fontFamily: 'ThaiSansLite', // Set the default font to ThaiSansLite
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home: const LoginPage(),
     );
   }
 }
