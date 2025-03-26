@@ -46,8 +46,8 @@ class _RegisterPageState extends State<RegisterPage> {
       _message = 'Registration successful! Please login.';
     });
     
-    // Delay for 2 seconds and then pop back to login page
-    Future.delayed(const Duration(seconds: 2), () {
+
+    Future.delayed(const Duration(seconds: 1), () {
       Navigator.pop(context);
     });
   }
