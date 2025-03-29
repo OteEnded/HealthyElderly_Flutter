@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'prehome_page.dart';
 import 'register_page.dart';
+import '../utils/api_service.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,33 +19,35 @@ class _LoginPageState extends State<LoginPage> {
   String _message = '';
   String _a = '';
   Future<void> _login() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? accountsJson = prefs.getString('accounts');
+    // SharedPreferences prefs = await SharedPreferences.getInstance();
+    // String? accountsJson = prefs.getString('accounts');
 
-    if (accountsJson == null) {
-      setState(() {
-        _message = 'No accounts found. Please register first.';
-      });
-      return;
-    }
+    // if (accountsJson == null) {
+    //   setState(() {
+    //     _message = 'No accounts found. Please register first.';
+    //   });
+    //   return;
+    // }
 
-    List<dynamic> accounts = jsonDecode(accountsJson);
+        final ApiService apiService = ApiService(
+        baseUrl: 'https://secretly-big-lobster.ngrok-free.app');
+    final response = await apiService.post('/api/auth/login', data: {
+      'identity_email': _usernameController.text.trim(),
+      'password': _passwordController.text.trim(),
+    });
+    
 
-    bool valid = accounts.any((acc) =>
-        acc['username'] == _usernameController.text.trim() &&
-        acc['password'] == _passwordController.text.trim());
-
-    if (valid) {
+    if (response['isSuccess']) {
       // บันทึก current username เพื่อนำไปแสดงใน PrehomePage
-      await prefs.setString('currentUsername', _usernameController.text.trim());
+      // await prefs.setString('currentUsername', _usernameController.text.trim());
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const PrehomePage()),
       );
     } else {
       setState(() {
-        _a = accounts.toString();
-        _message = 'Invalid username or password.';
+        // _a = accounts.toString();
+        _message = response['message'] ?? response['error'] ?? 'Login failed.';
       });
     }
   }

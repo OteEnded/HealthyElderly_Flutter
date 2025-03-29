@@ -5,7 +5,12 @@ class ApiService {
   final String baseUrl;
   final Map<String, String> defaultHeaders;
 
-  ApiService({required this.baseUrl, this.defaultHeaders = const {}});
+  ApiService(
+      {required this.baseUrl,
+      this.defaultHeaders = const {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      }});
 
   // Helper method to build headers
   Map<String, String> _buildHeaders(Map<String, String>? headers) {
