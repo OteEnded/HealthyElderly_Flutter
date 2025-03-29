@@ -1,109 +1,79 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/api_service.dart';
 import 'login_page.dart';
 import 'sub_profile_form.dart';
 import 'main_page.dart';
 
 class PrehomePage extends StatefulWidget {
-  const PrehomePage({super.key});
+  final Map<String, dynamic> response;
+
+  const PrehomePage({Key? key, required this.response}) : super(key: key);
 
   @override
   State<PrehomePage> createState() => _PrehomePageState();
 }
 
 class _PrehomePageState extends State<PrehomePage> {
-  String? currentUsername;
   List<dynamic> subProfiles = [];
+  bool isLoading = false;
+  String errorMessage = '';
 
-  // ดึง currentUsername จาก SharedPreferences
-  Future<void> _loadCurrentUsername() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    currentUsername = prefs.getString('currentUsername');
+  @override
+  void initState() {
+    super.initState();
+    _loadSubProfiles();
   }
 
-  // ดึง subProfiles ของ currentUsername
   Future<void> _loadSubProfiles() async {
-    if (currentUsername == null) return;
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String key = 'subProfiles_$currentUsername';
-    String? jsonStr = prefs.getString(key);
-    if (jsonStr != null) {
-      try {
-        subProfiles = jsonDecode(jsonStr) as List<dynamic>;
-      } catch (e) {
-        subProfiles = [];
-      }
-    } else {
-      subProfiles = [];
-    }
-  }
+  setState(() {
+    isLoading = true;
+    errorMessage = '';
+  });
 
-  // โหลดข้อมูลทั้งหมด
-  Future<void> _loadAllData() async {
-    await _loadCurrentUsername();
-    await _loadSubProfiles();
-  }
+  // ดึง userId จาก response
+  final userId = widget.response["content"]["user_id"] ?? 'Unknown';
 
-  // ฟังก์ชันสร้างโปรไฟล์ย่อย
-  Future<void> _createSubProfile() async {
-    if (currentUsername == null) return;
-    // ไปหน้า SubProfileFormPage เพื่อสร้าง sub profile ใหม่
-    var result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SubProfileFormPage(username: currentUsername!),
-      ),
+  try {
+    final ApiService apiService = ApiService(
+      baseUrl: 'https://secretly-big-lobster.ngrok-free.app',
     );
-    // ถ้ามีการสร้าง sub profile ใหม่ (result != null)
-    if (result != null) {
-      await _loadSubProfiles();
-      setState(() {});
-    }
-  }
 
-  // ฟังก์ชันลบ sub profile
-  Future<void> _deleteSubProfile(dynamic subProfile) async {
-  if (currentUsername == null) return;
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String key = 'subProfiles_$currentUsername';
-  String? jsonStr = prefs.getString(key);
-  if (jsonStr != null) {
-    List<dynamic> subProfilesList;
-    try {
-      subProfilesList = jsonDecode(jsonStr) as List<dynamic>;
-    } catch (e) {
-      subProfilesList = [];
+    final apiResponse = await apiService.post(
+      '/api/elder/get-all',
+      data: {'carer_id': userId},
+      
+    );
+    print("apiResponse: $apiResponse");
+    if (apiResponse['isSuccess'] == true) {
+      // ถ้า apiResponse['data'] เป็น null ให้แทนที่ด้วย List ว่าง
+      subProfiles = (apiResponse['content'] ?? []) as List<dynamic>;
+    } else {
+      errorMessage = apiResponse['message'] ?? 'Failed to load sub profiles';
     }
-    // ค้นหา index โดยเช็คว่าข้อมูลเป็น Map หรือไม่
-    int index = subProfilesList.indexWhere((sp) {
-      if (sp is Map<String, dynamic>) {
-        return sp['id'] == subProfile['id'];
-      }
-      return false;
+  } catch (e) {
+    errorMessage = 'Error: $e';
+  } finally {
+    setState(() {
+      isLoading = false;
     });
-    if (index != -1) {
-      subProfilesList.removeAt(index);
-      await prefs.setString(key, jsonEncode(subProfilesList));
-      setState(() {
-        subProfiles = subProfilesList;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Sub Profile deleted successfully")),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Sub Profile not found")),
-      );
-    }
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("No sub profiles data available")),
-    );
   }
 }
 
-  // ไปหน้า MainPage พร้อมส่งข้อมูล subProfile
+  void _goToAddSubProfile() {
+    final userId = widget.response["content"]["user_id"] ?? 'Unknown';
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SubProfileFormPage(userId: userId),
+      ),
+    ).then((value) {
+      if (value != null) {
+        _loadSubProfiles();
+      }
+    });
+  }
+
   void _goToMainPage(dynamic subProfile) {
     Navigator.push(
       context,
@@ -113,97 +83,105 @@ class _PrehomePageState extends State<PrehomePage> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _loadAllData().then((_) {
-      setState(() {});
-    });
+  Future<void> _deleteSubProfile(dynamic subProfile) async {
+    final userId = widget.response["content"]["user_id"] ?? 'Unknown';
+    try {
+      final ApiService apiService = ApiService(
+        baseUrl: 'https://secretly-big-lobster.ngrok-free.app',
+      );
+      final apiResponse = await apiService.post(
+        '/api/elder/delete', // สมมุติ endpoint สำหรับลบ sub profile
+        data: {'elder_id': subProfile['elder_id']},
+      );
+      if (apiResponse['isSuccess'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Sub Profile deleted successfully")),
+        );
+        _loadSubProfiles();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(apiResponse['message'] ?? "Deletion failed")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
   }
 
   @override
-Widget build(BuildContext context) {
-  String displayName = currentUsername ?? '';
+  Widget build(BuildContext context) {
+    final username = widget.response["content"]["username"] ?? 'Unknown';
 
-  return Scaffold(
-    appBar: AppBar(
-      title: Text('Home Page - $displayName'),
-      backgroundColor: const Color(0xFFECE9E1),
-    ),
-    body: Column(
-      children: [
-        Expanded(
-          child: subProfiles.isEmpty
-              ? const Center(child: Text("No sub profiles found."))
-              : ListView.builder(
-                  itemCount: subProfiles.length,
-                  itemBuilder: (context, index) {
-                    var sp = subProfiles[index];
-                    if (sp is Map<String, dynamic>) {
-                      return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: ListTile(
-                          title: Text(sp['name'] ?? 'Unknown'),
-                          subtitle: Text('Height: ${sp['height']}, Weight: ${sp['weight']}'),
-                          onTap: () => _goToMainPage(sp),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                            onPressed: () {
-                              // แสดง Alert Dialog เพื่อยืนยันการลบ
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: const Text("Confirm Deletion"),
-                                    content: const Text("Are you sure you want to delete this sub profile?"),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.of(context).pop(),
-                                        child: const Text("Cancel"),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop(); // ปิด dialog
-                                          _deleteSubProfile(sp);
-                                        },
-                                        child: const Text(
-                                          "Delete",
-                                          style: TextStyle(color: Colors.red),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      );
-                    } else {
-                      return const SizedBox();
-                    }
-                  },
-                ),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginPage()),
-            );
-          },
-          child: const Text('Logout'),
-        ),
-      ],
-    ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: _createSubProfile,
-      child: const Icon(Icons.add),
-    ),
-  );
-}
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('User - $username'),
+        backgroundColor: const Color(0xFF4E614D),
+      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : errorMessage.isNotEmpty
+              ? Center(child: Text(errorMessage))
+              : subProfiles.isEmpty
+                  ? const Center(child: Text("No sub profiles found."))
+                  : ListView.builder(
+                      itemCount: subProfiles.length,
+                      itemBuilder: (context, index) {
+                        final sp = subProfiles[index];
+                        if (sp is Map<String, dynamic>) {
+                          final nickname = sp['nickname'] ?? 'Unknown';
+                          final height = sp['height']?.toString() ?? 'N/A';
+                          final weight = sp['weight']?.toString() ?? 'N/A';
+                          return Card(
+                            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: ListTile(
+                              title: Text(nickname),
+                              subtitle: Text('Height: $height, Weight: $weight'),
+                              onTap: () => _goToMainPage(sp),
+                              // trailing: IconButton(
+                              //   icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                              //   onPressed: () {
+                              //     // แสดง Alert Dialog ยืนยันการลบ
+                              //     showDialog(
+                              //       context: context,
+                              //       builder: (context) {
+                              //         return AlertDialog(
+                              //           title: const Text("Confirm Deletion"),
+                              //           content: const Text("Are you sure you want to delete this sub profile?"),
+                              //           actions: [
+                              //             TextButton(
+                              //               onPressed: () => Navigator.of(context).pop(),
+                              //               child: const Text("Cancel"),
+                              //             ),
+                              //             TextButton(
+                              //               onPressed: () {
+                              //                 Navigator.of(context).pop();
+                              //                 _deleteSubProfile(sp);
+                              //               },
+                              //               child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                              //             ),
+                              //           ],
+                              //         );
+                              //       },
+                              //     );
+                              //   },
+                              // ),
+                            ),
+                          );
+                        } else {
+                          return const SizedBox();
+                        }
+                      },
+                    ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _goToAddSubProfile,
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
 }

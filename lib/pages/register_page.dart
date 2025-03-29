@@ -13,13 +13,15 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _newUsernameController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _newEmailController = TextEditingController();
   String _message = '';
 
   Future<void> _register() async {
     String username = _newUsernameController.text.trim();
     String password = _newPasswordController.text.trim();
+     String email = _newEmailController.text.trim();
 
-    if (username.isEmpty || password.isEmpty) {
+    if (username.isEmpty || password.isEmpty || email.isEmpty) {
       setState(() {
         _message = 'Please fill in all fields.';
       });
@@ -30,7 +32,7 @@ class _RegisterPageState extends State<RegisterPage> {
         baseUrl: 'https://secretly-big-lobster.ngrok-free.app');
     final response = await apiService.post('/api/auth/register', data: {
       'username': username,
-      'identity_email': username,
+      'identity_email': email,
       'password': password,
     });
 
@@ -66,6 +68,10 @@ class _RegisterPageState extends State<RegisterPage> {
             TextField(
               controller: _newUsernameController,
               decoration: const InputDecoration(labelText: 'Username'),
+            ),
+            TextField(
+              controller: _newEmailController,
+              decoration: const InputDecoration(labelText: 'Email'),
             ),
             TextField(
               controller: _newPasswordController,

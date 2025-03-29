@@ -14,43 +14,30 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _usernameController = TextEditingController();
+  // final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   String _message = '';
   String _a = '';
   Future<void> _login() async {
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-    // String? accountsJson = prefs.getString('accounts');
+  final ApiService apiService = ApiService(
+      baseUrl: 'https://secretly-big-lobster.ngrok-free.app');
+  final response = await apiService.post('/api/auth/login', data: {
+    'identity_email': _emailController.text.trim(),
+    'password': _passwordController.text.trim(),
+  });
 
-    // if (accountsJson == null) {
-    //   setState(() {
-    //     _message = 'No accounts found. Please register first.';
-    //   });
-    //   return;
-    // }
-
-        final ApiService apiService = ApiService(
-        baseUrl: 'https://secretly-big-lobster.ngrok-free.app');
-    final response = await apiService.post('/api/auth/login', data: {
-      'identity_email': _usernameController.text.trim(),
-      'password': _passwordController.text.trim(),
+  if (response['isSuccess']) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => PrehomePage(response: response)),
+    );
+  } else {
+    setState(() {
+      _message = response['message'] ?? response['error'] ?? 'Login failed.';
     });
-    
-
-    if (response['isSuccess']) {
-      // บันทึก current username เพื่อนำไปแสดงใน PrehomePage
-      // await prefs.setString('currentUsername', _usernameController.text.trim());
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const PrehomePage()),
-      );
-    } else {
-      setState(() {
-        // _a = accounts.toString();
-        _message = response['message'] ?? response['error'] ?? 'Login failed.';
-      });
-    }
   }
+}
 
   void _goToRegister() {
     Navigator.push(
@@ -80,8 +67,8 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 16),
               TextField(
-                controller: _usernameController,
-                decoration: const InputDecoration(labelText: 'Username'),
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'E-mail'),
               ),
               TextField(
                 controller: _passwordController,
