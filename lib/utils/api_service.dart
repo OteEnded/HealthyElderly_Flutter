@@ -91,7 +91,7 @@ class ApiService {
   // Handle HTTP response
   dynamic _handleResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      return jsonDecode(response.body);
+      return jsonDecode(utf8.decode(response.bodyBytes));
     } else {
       throw Exception(
           'HTTP Error: ${response.statusCode}, Body: ${response.body}');
