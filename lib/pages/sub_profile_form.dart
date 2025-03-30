@@ -233,7 +233,7 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
                     value: _mealPreference,
                     items: const [
                       DropdownMenuItem(value: 'Vegetarian', child: Text('Vegetarian')),
-                      DropdownMenuItem(value: 'Non-Vegetarian', child: Text('Non-Vegetarian')),
+                      DropdownMenuItem(value: 'Non_Vegetarian', child: Text('Non-Vegetarian')),
                       DropdownMenuItem(value: 'Vegan', child: Text('Vegan')),
                     ],
                     onChanged: (val) {
