@@ -1,9 +1,13 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../utils/api_service.dart';
-import 'login_page.dart';
-import 'sub_profile_form.dart';
-import 'main_page.dart';
+import 'package:healthy_elderly/pages/edit_user_profile.dart';
+import 'package:healthy_elderly/pages/sub_profile_form.dart';
+import 'package:healthy_elderly/pages/sub_profile_update.dart';
+import 'package:healthy_elderly/pages/main_page.dart';
+import 'package:healthy_elderly/pages/register_page.dart';
+import 'package:healthy_elderly/pages/login_page.dart';
+import 'package:healthy_elderly/pages/edit_user_profile.dart'; // import หน้า EditUserDataPage
+import 'package:healthy_elderly/utils/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PrehomePage extends StatefulWidget {
   final Map<String, dynamic> response;
@@ -26,39 +30,42 @@ class _PrehomePageState extends State<PrehomePage> {
   }
 
   Future<void> _loadSubProfiles() async {
-  setState(() {
-    isLoading = true;
-    errorMessage = '';
-  });
-
-  // ดึง userId จาก response
-  final userId = widget.response["content"]["user_id"] ?? 'Unknown';
-
-  try {
-    final ApiService apiService = ApiService(
-      baseUrl: 'https://secretly-big-lobster.ngrok-free.app',
-    );
-
-    final apiResponse = await apiService.post(
-      '/api/elder/get-all',
-      data: {'carer_id': userId},
-      
-    );
-    print("apiResponse: $apiResponse");
-    if (apiResponse['isSuccess'] == true) {
-      // ถ้า apiResponse['data'] เป็น null ให้แทนที่ด้วย List ว่าง
-      subProfiles = (apiResponse['content'] ?? []) as List<dynamic>;
-    } else {
-      errorMessage = apiResponse['message'] ?? 'Failed to load sub profiles';
-    }
-  } catch (e) {
-    errorMessage = 'Error: $e';
-  } finally {
     setState(() {
-      isLoading = false;
+      isLoading = true;
+      errorMessage = '';
     });
+
+    // ดึง userId จาก response
+    final userId = widget.response["content"]["user_id"] ?? 'Unknown';
+
+    try {
+      final ApiService apiService = ApiService(
+        baseUrl: 'https://secretly-big-lobster.ngrok-free.app',
+      );
+
+      final apiResponse = await apiService.post(
+        '/api/elder/get-all',
+        data: {'carer_id': userId},
+      );
+      if (apiResponse['isSuccess'] == true) {
+        setState(() {
+          subProfiles = (apiResponse['content'] ?? []) as List<dynamic>;
+        });
+      } else {
+        setState(() {
+          errorMessage = apiResponse['message'] ?? 'Failed to load sub profiles';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Error: $e';
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
-}
 
   void _goToAddSubProfile() {
     final userId = widget.response["content"]["user_id"] ?? 'Unknown';
@@ -78,13 +85,54 @@ class _PrehomePageState extends State<PrehomePage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MainPage(subProfile: subProfile),
+        builder: (context) => MainPage(
+          subProfile: subProfile,
+          userId: widget.response["content"]["user_id"],
+        ),
       ),
     );
   }
 
+  void _goToUpdateSubProfile(dynamic subProfile) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SubProfileUpdatePage(
+          subProfile: subProfile,
+          userId: widget.response["content"]["user_id"],
+        ),
+      ),
+    ).then((value) {
+      if (value != null) {
+        _loadSubProfiles();
+      }
+    });
+  }
+
   Future<void> _deleteSubProfile(dynamic subProfile) async {
     final userId = widget.response["content"]["user_id"] ?? 'Unknown';
+    bool confirm = await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text("Confirm Deletion"),
+              content: const Text("Are you sure you want to delete this sub profile?"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+    if (!confirm) return;
+
     try {
       final ApiService apiService = ApiService(
         baseUrl: 'https://secretly-big-lobster.ngrok-free.app',
@@ -110,6 +158,15 @@ class _PrehomePageState extends State<PrehomePage> {
     }
   }
 
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final username = widget.response["content"]["username"] ?? 'Unknown';
@@ -118,6 +175,32 @@ class _PrehomePageState extends State<PrehomePage> {
       appBar: AppBar(
         title: Text('User - $username'),
         backgroundColor: const Color(0xFF4E614D),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              // นำผู้ใช้ไปที่หน้า EditUserDataPage
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditUserDataPage(
+                    userData: widget.response["content"],
+                  ),
+                ),
+              ).then((updatedUserData) {
+                if (updatedUserData != null) {
+                  setState(() {
+                    widget.response["content"] = updatedUserData;
+                  });
+                }
+              });
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+          ),
+        ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -141,35 +224,22 @@ class _PrehomePageState extends State<PrehomePage> {
                             ),
                             child: ListTile(
                               title: Text(nickname),
-                              subtitle: Text('Height: $height, Weight: $weight'),
+                              subtitle: Text('ส่วนสูง: $height, น้ำหนัก: $weight'),
                               onTap: () => _goToMainPage(sp),
-                              // trailing: IconButton(
-                              //   icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                              //   onPressed: () {
-                              //     // แสดง Alert Dialog ยืนยันการลบ
-                              //     showDialog(
-                              //       context: context,
-                              //       builder: (context) {
-                              //         return AlertDialog(
-                              //           title: const Text("Confirm Deletion"),
-                              //           content: const Text("Are you sure you want to delete this sub profile?"),
-                              //           actions: [
-                              //             TextButton(
-                              //               onPressed: () => Navigator.of(context).pop(),
-                              //               child: const Text("Cancel"),
-                              //             ),
-                              //             TextButton(
-                              //               onPressed: () {
-                              //                 Navigator.of(context).pop();
-                              //                 _deleteSubProfile(sp);
-                              //               },
-                              //               child: const Text("Delete", style: TextStyle(color: Colors.red)),
-                              //             ),
-                              //           ],
-                              //         );
+                              // trailing: Row(
+                              //   mainAxisSize: MainAxisSize.min,
+                              //   children: [
+                              //     IconButton(
+                              //       icon: const Icon(Icons.edit, color: Colors.blue),
+                              //       onPressed: () => _goToUpdateSubProfile(sp),
+                              //     ),
+                              //     IconButton(
+                              //       icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                              //       onPressed: () {
+                              //         _deleteSubProfile(sp);
                               //       },
-                              //     );
-                              //   },
+                              //     ),
+                              //   ],
                               // ),
                             ),
                           );

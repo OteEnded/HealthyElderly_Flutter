@@ -37,14 +37,14 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
 
   // สำหรับโรค (diseases)
   List<dynamic> _diseases = []; // รายการโรคที่ดึงมาจาก API (แต่ละรายการเป็น Map)
-  List<String> _selectedDiseases = []; // รายการโรคที่ผู้ใช้เลือก (เก็บเป็น String เช่น english_name)
-  final TextEditingController _additionalDiseasesController = TextEditingController();
+  List<String> _selectedDiseases = []; // รายการโรคที่ผู้ใช้เลือก (เก็บเป็น String เช่น english_name หรือ thai_name)
+  // (ถ้าต้องการฟิลด์เพิ่มเติมสำหรับโรคที่ไม่ได้อยู่ในตัวเลือก ให้เพิ่ม controller นี้)
+  // final TextEditingController _additionalDiseasesController = TextEditingController();
 
   // Instance ของ uuid
   final Uuid uuid = Uuid();
 
-  // (ฟังก์ชัน _loadDiseases() สำหรับดึงข้อมูลโรคจาก API อยู่ที่นี่)
-  // ...
+  // ฟังก์ชันดึงรายการโรคจาก API
   Future<void> _loadDiseases() async {
     try {
       final ApiService apiService = ApiService(
@@ -69,23 +69,13 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
   }
 
   Future<void> _saveSubProfile() async {
-    // รวมรายการโรคจาก FilterChip และจาก TextField (แยกด้วย comma)
-    List<String> additionalDiseases = _additionalDiseasesController.text
-        .split(',')
-        .map((e) => e.trim())
-        .where((element) => element.isNotEmpty)
-        .toList();
-    // สำหรับโรคที่เลือกจาก API เราใช้ _selectedDiseases (ซึ่งเก็บ english_name)
-    // แล้ว map ให้เป็น medical_condition_id จาก _diseases
+    // ในที่นี้เราจะใช้ _selectedDiseases ที่เก็บเป็น thai_name แล้ว map ให้เป็น medical_condition_id จาก _diseases
     List<String> elderMedicalConditions = _diseases
         .where((disease) =>
-            _selectedDiseases.contains(disease['english_name']))
+            _selectedDiseases.contains(disease['thai_name']))
         .map<String>((disease) =>
             disease['medical_condition_id'] as String)
         .toList();
-
-    // หากมีโรคเพิ่มเติมจาก TextField ให้รวมเข้าด้วย (อาจจะเป็น string ที่ไม่ได้มี medical_condition_id)
-    List<String> diseases = [...elderMedicalConditions, ...additionalDiseases];
 
     // สร้าง Map subProfileData จากข้อมูลใน form พร้อมแนบ user_id จาก widget.userId
     Map<String, dynamic> subProfileData = {
@@ -108,7 +98,7 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
       // แนบ user_id ที่ส่งมาจาก PrehomePage
       "carer_id": widget.userId,
       // ส่งค่า medical_condition_id ของโรคที่เลือก
-      "elder_medical_conditions": diseases,
+      "elder_medical_conditions": elderMedicalConditions,
     };
 
     print("SubProfileData: ${jsonEncode(subProfileData)}");
@@ -130,6 +120,22 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
     }
   }
 
+  // ฟังก์ชันสำหรับสร้าง label ที่มีเครื่องหมาย * สีแดง และกำหนด fontSize เป็น 10
+  Widget _buildRequiredLabel(String label) {
+    return RichText(
+      text: TextSpan(
+        text: label,
+        style: const TextStyle(color: Colors.black, fontSize: 10),
+        children: const [
+          TextSpan(
+            text: ' *',
+            style: TextStyle(color: Colors.red, fontSize: 10),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -140,7 +146,7 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Sub Profile'),
+        title: const Text('Create Elder Profile'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -149,44 +155,52 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Sub Profile Information',
+                'ข้อมูลผู้สูงอายุ',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                
               ),
               // Name
               TextField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(
+                  label: _buildRequiredLabel('ชื่อเล่น'),
+                ),
                 keyboardType: TextInputType.text,
               ),
               // Height
               TextField(
                 controller: _heightController,
-                decoration: const InputDecoration(labelText: 'Height (cm)'),
+                decoration: InputDecoration(
+                  label: _buildRequiredLabel('ส่วนสูง (cm)'),
+                ),
                 keyboardType: TextInputType.number,
               ),
               // Weight
               TextField(
                 controller: _weightController,
-                decoration: const InputDecoration(labelText: 'Weight (kg)'),
+                decoration: InputDecoration(
+                  label: _buildRequiredLabel('น้ำหนัก (kg)'),
+                ),
                 keyboardType: TextInputType.number,
               ),
               // Age
               TextField(
                 controller: _ageController,
-                decoration: const InputDecoration(labelText: 'Age'),
+                decoration: InputDecoration(
+                  label: _buildRequiredLabel('อายุ'),
+                ),
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 16),
-              // Sex (เพศกำเนิด) แบบ Dropdown
+              // Sex (เพศกำเนิด) แบบ Dropdown พร้อม label ที่มี * สีแดง
               Row(
                 children: [
-                  const Text('Sex: '),
+                  _buildRequiredLabel('เพศกำเนิด: '),
+                  const SizedBox(width: 8),
                   DropdownButton<String>(
                     value: _sex,
                     items: const [
-                      DropdownMenuItem(value: 'Male', child: Text('Male')),
-                      DropdownMenuItem(value: 'Female', child: Text('Female')),
+                      DropdownMenuItem(value: 'Male', child: Text('ชาย')),
+                      DropdownMenuItem(value: 'Female', child: Text('หญิง')),
                     ],
                     onChanged: (val) {
                       setState(() {
@@ -201,21 +215,22 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
               TextField(
                 controller: _genderController,
                 decoration: const InputDecoration(
-                  labelText: 'Gender (e.g., Transgender, Non-binary, etc.)',
+                  labelText: 'เพศสภาพ (เช่น Transgender, Non-binary และอื่นๆ)',
                 ),
                 keyboardType: TextInputType.text,
               ),
               const SizedBox(height: 16),
-              // Physical Activity Level
+              // Physical Activity Level (มี *)
               Row(
                 children: [
-                  const Text('Physical Activity: '),
+                  _buildRequiredLabel('ความถี่ในการออกกำลังกาย: '),
+                  const SizedBox(width: 8),
                   DropdownButton<String>(
                     value: _physicalActivityLevel,
                     items: const [
-                      DropdownMenuItem(value: 'Low', child: Text('Low')),
-                      DropdownMenuItem(value: 'Moderate', child: Text('Moderate')),
-                      DropdownMenuItem(value: 'Active', child: Text('Active')),
+                      DropdownMenuItem(value: 'Low', child: Text('0-2วัน/สัปดาห์')),
+                      DropdownMenuItem(value: 'Moderate', child: Text('3-5วัน/สัปดาห์')),
+                      DropdownMenuItem(value: 'Active', child: Text('6-7วัน/สัปดาห์')),
                     ],
                     onChanged: (val) {
                       setState(() {
@@ -225,16 +240,17 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
                   ),
                 ],
               ),
-              // Meal Preference
+              // Meal Preference (มี *)
               Row(
                 children: [
-                  const Text('Meal Preference: '),
+                  _buildRequiredLabel('ประเภทอาหารที่ทาน: '),
+                  const SizedBox(width: 8),
                   DropdownButton<String>(
                     value: _mealPreference,
                     items: const [
-                      DropdownMenuItem(value: 'Vegetarian', child: Text('Vegetarian')),
-                      DropdownMenuItem(value: 'Non_Vegetarian', child: Text('Non-Vegetarian')),
-                      DropdownMenuItem(value: 'Vegan', child: Text('Vegan')),
+                      DropdownMenuItem(value: 'Vegetarian', child: Text('ทานมังสวิรัติ')),
+                      DropdownMenuItem(value: 'Non_Vegetarian', child: Text('ทานปกติ')),
+                      DropdownMenuItem(value: 'Vegan', child: Text('ทานเจ')),
                     ],
                     onChanged: (val) {
                       setState(() {
@@ -244,16 +260,17 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
                   ),
                 ],
               ),
-              // Appetite Level
+              // Appetite Level (มี *)
               Row(
                 children: [
-                  const Text('Appetite Level: '),
+                  _buildRequiredLabel('ความอยากอาหาร: '),
+                  const SizedBox(width: 8),
                   DropdownButton<String>(
                     value: _appetiteLevel,
                     items: const [
-                      DropdownMenuItem(value: 'Low', child: Text('Low')),
-                      DropdownMenuItem(value: 'Normal', child: Text('Normal')),
-                      DropdownMenuItem(value: 'High', child: Text('High')),
+                      DropdownMenuItem(value: 'Low', child: Text('เบื่ออาหาร')),
+                      DropdownMenuItem(value: 'Normal', child: Text('ปกติ')),
+                      DropdownMenuItem(value: 'High', child: Text('ทานมากกว่าปกติ')),
                     ],
                     onChanged: (val) {
                       setState(() {
@@ -267,37 +284,50 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
               // Favorite Food
               TextField(
                 controller: _favoriteFoodController,
-                decoration: const InputDecoration(labelText: 'Favorite Food'),
+                decoration: const InputDecoration(labelText: 'อาหารที่ชอบ'),
                 keyboardType: TextInputType.text,
               ),
               // Food Allergies
               TextField(
                 controller: _foodAllergiesController,
-                decoration: const InputDecoration(labelText: 'Food Allergies'),
+                decoration: const InputDecoration(labelText: 'อาหารที่แพ้'),
                 keyboardType: TextInputType.text,
               ),
               // Drug Allergies
               TextField(
                 controller: _drugAllergiesController,
-                decoration: const InputDecoration(labelText: 'Drug Allergies'),
+                decoration: const InputDecoration(labelText: 'ยาที่แพ้'),
                 keyboardType: TextInputType.text,
               ),
               // Medications
               TextField(
                 controller: _medicationsController,
-                decoration: const InputDecoration(labelText: 'Medications'),
+                decoration: const InputDecoration(labelText: 'ยาที่ทานปัจจุบัน'),
                 keyboardType: TextInputType.text,
               ),
+              // Other Conditions
+              TextField(
+                controller: _otherConditionsController,
+                decoration: const InputDecoration(labelText: 'อื่นๆ'),
+                keyboardType: TextInputType.text,
+              ),
+              // Note
+              TextField(
+                controller: _noteController,
+                decoration: const InputDecoration(labelText: 'Note'),
+                keyboardType: TextInputType.text,
+              ),
+              const SizedBox(height: 16),
+              // Diseases (select and add extra if needed)
               const Text(
-                'Diseases (select and add extra if needed):',
+                'โรคประจำตัว:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              // ตัวเลือกโรคที่ได้จาก API โดยใช้ FilterChip
+              // ตัวเลือกโรคที่ได้จาก API โดยใช้ FilterChip (แสดงด้วย thai_name)
               Wrap(
                 spacing: 8.0,
                 children: _diseases.map((disease) {
-                  // ใช้ english_name เป็นตัวแสดง
-                  final diseaseName = disease['english_name'] ?? 'Unknown';
+                  final diseaseName = disease['thai_name'] ?? 'Unknown';
                   final selected = _selectedDiseases.contains(diseaseName);
                   return FilterChip(
                     label: Text(diseaseName),
@@ -315,27 +345,8 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
                 }).toList(),
               ),
               const SizedBox(height: 16),
-              // Other Conditions
-              TextField(
-                controller: _otherConditionsController,
-                decoration: const InputDecoration(labelText: 'Other Conditions'),
-              ),
-              // Note
-              TextField(
-                controller: _noteController,
-                decoration: const InputDecoration(labelText: 'Note'),
-              ),
-              const SizedBox(height: 16),
-              // เพิ่มฟิลด์โรคที่กำลังเป็น (diseases)
-              
-              // ฟิลด์เพิ่มเติมสำหรับโรคที่ไม่ได้อยู่ในตัวเลือก
-              // TextField(
-              //   controller: _additionalDiseasesController,
-              //   decoration: const InputDecoration(
-              //     labelText: 'Additional Diseases (comma separated)',
-              //   ),
-              // ),
-              // const SizedBox(height: 24),
+              // (ถ้าต้องการฟิลด์เพิ่มเติมสำหรับโรคที่ไม่ได้อยู่ในตัวเลือก ให้เพิ่มที่นี่)
+              const SizedBox(height: 24),
               Center(
                 child: ElevatedButton(
                   onPressed: _saveSubProfile,

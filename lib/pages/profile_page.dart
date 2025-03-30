@@ -1,12 +1,13 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'edit_profile_page.dart';
+import 'package:healthy_elderly/pages/prehome_page.dart';
+import 'package:healthy_elderly/pages/sub_profile_update.dart';
+import '../utils/api_service.dart';
 
 class ProfilePage extends StatefulWidget {
   final Map<String, dynamic> subProfile;
+  final String userId;
 
-  const ProfilePage({super.key, required this.subProfile});
+  const ProfilePage({super.key, required this.subProfile, required this.userId});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -27,7 +28,10 @@ class _ProfilePageState extends State<ProfilePage> {
     var updatedProfile = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => EditProfilePage(subProfile: currentSubProfile),
+        builder: (context) => SubProfileUpdatePage(
+          subProfile: currentSubProfile,
+          userId: widget.userId, // ส่ง userId ไปด้วย
+        ),
       ),
     );
     if (updatedProfile != null) {
@@ -37,23 +41,102 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // ฟังก์ชันลบ sub profile ผ่าน API และนำไปที่ PrehomePage หลังลบเสร็จ
+  Future<void> _deleteProfile() async {
+    final elderId = currentSubProfile['elder_id'];
+    if (elderId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No elder_id found.")),
+      );
+      return;
+    }
+
+    bool confirm = await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text("Confirm Deletion"),
+              content: const Text("Are you sure you want to delete this sub profile?"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+
+    if (!confirm) return;
+
+    try {
+      final ApiService apiService = ApiService(
+        baseUrl: 'https://secretly-big-lobster.ngrok-free.app',
+      );
+      final apiResponse = await apiService.post(
+        '/api/elder/delete',
+        data: {'elder_id': elderId},
+      );
+
+      if (apiResponse['isSuccess'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Sub Profile deleted successfully")),
+        );
+        // นำผู้ใช้ไปยังหน้า PrehomePage พร้อมส่ง response ที่มี user_id
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PrehomePage(
+              response: {
+                "content": {"user_id": widget.userId},
+                "isSuccess": true,
+                "message": "User data"
+              },
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(apiResponse['message'] ?? "Deletion failed")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    String name = currentSubProfile['name'] ?? 'Unknown';
+    String name = currentSubProfile['nickname'] ?? 'Unknown';
     String height = currentSubProfile['height']?.toString() ?? 'N/A';
     String weight = currentSubProfile['weight']?.toString() ?? 'N/A';
     String age = currentSubProfile['age']?.toString() ?? 'N/A';
     String sex = currentSubProfile['sex'] ?? 'N/A';
     String gender = currentSubProfile['gender'] ?? 'N/A';
-    String physicalActivity = currentSubProfile['physicalActivityLevel'] ?? 'N/A';
-    String mealPreference = currentSubProfile['mealPreference'] ?? 'N/A';
-    String appetiteLevel = currentSubProfile['appetiteLevel'] ?? 'N/A';
-    String favoriteFood = currentSubProfile['favoriteFood'] ?? '';
-    String foodAllergies = currentSubProfile['foodAllergies'] ?? '';
-    String drugAllergies = currentSubProfile['drugAllergies'] ?? '';
+    String physicalActivity = currentSubProfile['physical_activity_level'] ?? 'N/A';
+    String mealPreference = currentSubProfile['meal_preferences'] ?? 'N/A';
+    String appetiteLevel = currentSubProfile['appetite_level'] ?? 'N/A';
+    String favoriteFood = currentSubProfile['favorite_food'] ?? '';
+    String foodAllergies = currentSubProfile['food_allergies'] ?? '';
+    String drugAllergies = currentSubProfile['drug_allergies'] ?? '';
     String medications = currentSubProfile['medications'] ?? '';
-    String otherConditions = currentSubProfile['otherConditions'] ?? '';
-    String note = currentSubProfile['note'] ?? '';
+    String otherConditions = currentSubProfile['other_conditions'] ?? '';
+    String note = currentSubProfile['carer_notes'] ?? '';
+
+    // ดึงข้อมูลโรคที่เลือกไว้ (elder_medical_conditions) ซึ่งเป็น List ของ Map
+    List<dynamic> diseasesList = currentSubProfile['elder_medical_conditions'] ?? [];
+    // map ค่า thai_name จากแต่ละโรค
+    List<String> diseaseNames = diseasesList
+        .map((disease) => disease['thai_name']?.toString() ?? 'Unknown')
+        .toList();
+    String diseasesText = diseaseNames.isNotEmpty ? diseaseNames.join(', ') : "None";
 
     return Scaffold(
       appBar: AppBar(
@@ -66,33 +149,52 @@ class _ProfilePageState extends State<ProfilePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Name: $name',
+              'ชื่อ: $name',
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-            Text('Age: $age'),
-            Text('Sex (Birth): $sex'),
-            Text('Gender: $gender'),
-            Text('Height: $height cm'),
-            Text('Weight: $weight kg'),
-            Text('Physical Activity: $physicalActivity'),
-            Text('Meal Preference: $mealPreference'),
-            Text('Appetite Level: $appetiteLevel'),
+            Text('อายุ: $age'),
+            Text('เพศกำเนิด: $sex'),
+            Text('เพศสภาพ: $gender'),
+            Text('ส่วนสูง: $height cm'),
+            Text('น้ำหนัก: $weight kg'),
+            Text('ความถี่ในการออกกำลังกาย: $physicalActivity'),
+            Text('ประเภทอาหารที่ทาน: $mealPreference'),
+            Text('ความอยากอาการ: $appetiteLevel'),
             const SizedBox(height: 16),
             const Text(
-              'Additional Details:',
+              'รายละเอียดเพิ่มเติม:',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            Text('Favorite Food: $favoriteFood'),
-            Text('Food Allergies: $foodAllergies'),
-            Text('Drug Allergies: $drugAllergies'),
-            Text('Medications: $medications'),
-            Text('Other Conditions: $otherConditions'),
+            Text('อาหารที่ชอบ: $favoriteFood'),
+            Text('อาหารที่แพ้: $foodAllergies'),
+            Text('ยาที่แพ้: $drugAllergies'),
+            Text('ยาที่ทานปัจจุบัน: $medications'),
+            Text('อื่นๆ: $otherConditions'),
             Text('Note: $note'),
+            const SizedBox(height: 16),
+            Text(
+              'โรคประจำตัว: $diseasesText',
+              style: const TextStyle(fontSize: 16),
+            ),
             const SizedBox(height: 24),
             Center(
-              child: ElevatedButton(
-                onPressed: _navigateToEdit,
-                child: const Text('Update Profile'),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: _navigateToEdit,
+                    child: const Text('Update Profile'),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: _deleteProfile,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      textStyle: const TextStyle(fontSize: 10, color: Colors.white),
+                    ),
+                    child: const Text('Delete Profile'),
+                  ),
+                ],
               ),
             ),
           ],
