@@ -22,7 +22,7 @@ class _DashboardPageState extends State<DashboardPage> {
     final prompt = _promptController.text.trim();
     if (prompt.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter your prompt.")),
+        const SnackBar(content: Text("โปรดกรอกข้อความให้คำปรึกษา")),
       );
       return;
     }
@@ -51,14 +51,14 @@ class _DashboardPageState extends State<DashboardPage> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: const Text("ข้อความให้คำปรึกษาจาก AI"),
+            title: const Text("ข้อความให้คำปรึกษาโดย AI"),
             content: SingleChildScrollView(
               child: Text(resultMessage),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text("OK"),
+                child: const Text("เรียบร้อย"),
               ),
             ],
           );
@@ -74,7 +74,7 @@ class _DashboardPageState extends State<DashboardPage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text("OK"),
+                child: const Text("เรียบร้อย"),
               ),
             ],
           );
@@ -89,16 +89,16 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    String name = widget.subProfile['nickname'] ?? 'Unknown';
+    String name = widget.subProfile['nickname'] ?? 'ไม่ทราบชื่อ';
     String heightStr = widget.subProfile['height'] != null
         ? widget.subProfile['height'].toString()
-        : 'N/A';
+        : 'ไม่ทราบ';
     String weightStr = widget.subProfile['weight'] != null
         ? widget.subProfile['weight'].toString()
-        : 'N/A';
+        : 'ไม่ทราบ';
     String ageStr = widget.subProfile['age'] != null
         ? widget.subProfile['age'].toString()
-        : 'N/A';
+        : 'ไม่ทราบ';
     String sex = widget.subProfile['sex']?.toString().toLowerCase() ?? 'male';
 
     // ตัวอย่างคำนวณ BMR (อาจปรับเปลี่ยนได้)
@@ -119,8 +119,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
-        backgroundColor: const Color(0xFFECE9E1),
+        title: const Text('ภาพรวม'),
+        backgroundColor: const Color(0xFF4E614D),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -128,7 +128,7 @@ class _DashboardPageState extends State<DashboardPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Welcome $name to your Dashboard!',
+              'โปรไฟล์ผู้สูงอายุของ $name',
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -137,12 +137,12 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'ส่วนสูง: $heightStr cm   |   น้ำหนัก: $weightStr kg',
+              'ส่วนสูง: $heightStr ซม.  |   น้ำหนัก: $weightStr กิโลกรัม  |   อายุ: $ageStr ปี',
               style: const TextStyle(fontSize: 16, color: Color(0xFF4E614D)),
             ),
             const SizedBox(height: 16),
             Text(
-              'แคลลอรี่ที่ควรทานต่อวัน: ${bmrInt > 0 ? '$bmrInt kcal' : 'N/A'}',
+              'แคลลอรี่ที่ควรทานต่อวัน: ${bmrInt > 0 ? '$bmrInt กิโลแคเลอรี่' : 'ไม่ทราบ'}',
               style: const TextStyle(fontSize: 16, color: Color(0xFF4E614D)),
             ),
             const SizedBox(height: 16),
@@ -165,7 +165,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       leading: const Icon(Icons.restaurant,
                           color: Color(0xFF4E614D)),
                       title: const Text('แคลลอรี่ที่ควรทานต่อวัน'),
-                      subtitle: Text(bmrInt > 0 ? '$bmrInt kcal' : 'N/A'),
+                      subtitle: Text(bmrInt > 0 ? '$bmrInt กิโลแคลอรี่' : 'ไม่ทราบ'),
                     ),
                   ),
                   Card(
@@ -179,7 +179,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       leading: const Icon(Icons.local_dining,
                           color: Color(0xFF4E614D)),
                       title: const Text('โปรตีนที่ควรทานต่อวัน'),
-                      subtitle: Text('$weightStr per day'),
+                      subtitle: Text('$weightStr กรัม'),
                     ),
                   ),
                 ],
@@ -188,13 +188,13 @@ class _DashboardPageState extends State<DashboardPage> {
             const Divider(),
             // พื้นที่สำหรับส่งข้อความ prompt
             const Text(
-              'ข้อความให้คำปรึกษาจาก AI:',
+              'ข้อความให้คำปรึกษาโดย AI:',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             TextField(
               controller: _promptController,
               decoration: const InputDecoration(
-                hintText: 'เขียน ข้อความ ที่นี่...',
+                hintText: 'เขียนข้อความขอคำปรึกษาที่นี่...',
               ),
               keyboardType: TextInputType.multiline,
               maxLines: 3,

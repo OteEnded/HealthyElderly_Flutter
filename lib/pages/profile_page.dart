@@ -46,7 +46,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final elderId = currentSubProfile['elder_id'];
     if (elderId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No elder_id found.")),
+        const SnackBar(content: Text("ไม่สามารถลบโปรไฟล์ได้")),
       );
       return;
     }
@@ -55,16 +55,17 @@ class _ProfilePageState extends State<ProfilePage> {
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: const Text("Confirm Deletion"),
-              content: const Text("Are you sure you want to delete this sub profile?"),
+              title: const Text("ยืนยันการลบโปรไฟล์"),
+              content: const Text("คุณแน่ใจหรือไม่ว่าต้องการลบโปรไฟล์นี้?"),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text("Cancel"),
+                  child: const Text("ยกเลิก"),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                  child: const Text("ยืนยันการลบ"
+                  , style: TextStyle(color: Colors.red)),
                 ),
               ],
             );
@@ -85,7 +86,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
       if (apiResponse['isSuccess'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Sub Profile deleted successfully")),
+          const SnackBar(content: Text("ลบโปรไฟล์เรียบร้อยแล้ว!")),
         );
         // นำผู้ใช้ไปยังหน้า PrehomePage พร้อมส่ง response ที่มี user_id
         Navigator.pushReplacement(
@@ -95,14 +96,14 @@ class _ProfilePageState extends State<ProfilePage> {
               response: {
                 "content": {"user_id": widget.userId},
                 "isSuccess": true,
-                "message": "User data"
+                "message": "ข้อมูลผู้ใช้ถูกลบเรียบร้อยแล้ว",
               },
             ),
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(apiResponse['message'] ?? "Deletion failed")),
+          SnackBar(content: Text(apiResponse['message'] ?? "เกิดข้อผิดพลาดในการลบโปรไฟล์")),
         );
       }
     } catch (e) {
@@ -114,7 +115,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    String name = currentSubProfile['nickname'] ?? 'Unknown';
+    String name = currentSubProfile['nickname'] ?? 'ไม่ทราบชื่อ';
     String height = currentSubProfile['height']?.toString() ?? 'N/A';
     String weight = currentSubProfile['weight']?.toString() ?? 'N/A';
     String age = currentSubProfile['age']?.toString() ?? 'N/A';
@@ -134,13 +135,13 @@ class _ProfilePageState extends State<ProfilePage> {
     List<dynamic> diseasesList = currentSubProfile['elder_medical_conditions'] ?? [];
     // map ค่า thai_name จากแต่ละโรค
     List<String> diseaseNames = diseasesList
-        .map((disease) => disease['thai_name']?.toString() ?? 'Unknown')
+        .map((disease) => disease['thai_name']?.toString() ?? 'ไม่ทราบชื่อโรค')
         .toList();
-    String diseasesText = diseaseNames.isNotEmpty ? diseaseNames.join(', ') : "None";
+    String diseasesText = diseaseNames.isNotEmpty ? diseaseNames.join(', ') : "ไม่มี";
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile - $name'),
+        title: Text('โปรไฟล์ผู้สูงอายุของ $name'),
         backgroundColor: const Color(0xFF4E614D),
       ),
       body: SingleChildScrollView(
@@ -155,8 +156,8 @@ class _ProfilePageState extends State<ProfilePage> {
             Text('อายุ: $age'),
             Text('เพศกำเนิด: $sex'),
             Text('เพศสภาพ: $gender'),
-            Text('ส่วนสูง: $height cm'),
-            Text('น้ำหนัก: $weight kg'),
+            Text('ส่วนสูง: $height ซม.'),
+            Text('น้ำหนัก: $weight กิโลกรัม'),
             Text('ความถี่ในการออกกำลังกาย: $physicalActivity'),
             Text('ประเภทอาหารที่ทาน: $mealPreference'),
             Text('ความอยากอาการ: $appetiteLevel'),
@@ -170,7 +171,7 @@ class _ProfilePageState extends State<ProfilePage> {
             Text('ยาที่แพ้: $drugAllergies'),
             Text('ยาที่ทานปัจจุบัน: $medications'),
             Text('อื่นๆ: $otherConditions'),
-            Text('Note: $note'),
+            Text('บันทึกจากผู้ดูแล: $note'),
             const SizedBox(height: 16),
             Text(
               'โรคประจำตัว: $diseasesText',
@@ -183,7 +184,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   ElevatedButton(
                     onPressed: _navigateToEdit,
-                    child: const Text('Update Profile'),
+                    child: const Text('แก้ไขโปรไฟล์'),
                   ),
                   const SizedBox(width: 16),
                   ElevatedButton(
@@ -192,7 +193,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       backgroundColor: Colors.red,
                       textStyle: const TextStyle(fontSize: 10, color: Colors.white),
                     ),
-                    child: const Text('Delete Profile'),
+                    child: const Text('ลบโปรไฟล์นี้', style: TextStyle(fontSize: 10, color: Colors.white)),
                   ),
                 ],
               ),

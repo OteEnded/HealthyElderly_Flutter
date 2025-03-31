@@ -23,7 +23,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (username.isEmpty || password.isEmpty || email.isEmpty) {
       setState(() {
-        _message = 'Please fill in all fields.';
+        _message = 'โปดกรอกข้อมูลให้ครบถ้วน';
       });
       return;
     }
@@ -38,14 +38,14 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (response['isSuccess']) {
       setState(() {
-        _message = 'Registration successful! Please login.';
+        _message = 'ลงทะเบียนสำเร็จ กรุณาเข้าสู่ระบบ';
       });
       return;
     }
 
     setState(() {
       _message =
-          response['message'] ?? response['error'] ?? 'Registration failed.';
+          response['message'] ?? response['error'] ?? 'เกิดข้อผิดพลาดในการลงทะเบียน';
     });
 
     Future.delayed(const Duration(seconds: 1), () {
@@ -57,7 +57,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Register'),
+        title: const Text('ลงทะเบียนผู้ดูแล'),
         centerTitle: true,
         backgroundColor: const Color(0xFFECE9E1),
       ),
@@ -67,21 +67,21 @@ class _RegisterPageState extends State<RegisterPage> {
           children: [
             TextField(
               controller: _newUsernameController,
-              decoration: const InputDecoration(labelText: 'Username'),
+              decoration: const InputDecoration(labelText: 'ชื่อผู้ใช้'),
             ),
             TextField(
               controller: _newEmailController,
-              decoration: const InputDecoration(labelText: 'Email'),
+              decoration: const InputDecoration(labelText: 'อีเมล'),
             ),
             TextField(
               controller: _newPasswordController,
-              decoration: const InputDecoration(labelText: 'Password'),
+              decoration: const InputDecoration(labelText: 'รหัสผ่าน'),
               obscureText: true,
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _register,
-              child: const Text('Register'),
+              child: const Text('ลงทะเบียน'),
             ),
             const SizedBox(height: 8),
             Text(

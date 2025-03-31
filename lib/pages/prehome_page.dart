@@ -53,7 +53,7 @@ class _PrehomePageState extends State<PrehomePage> {
         });
       } else {
         setState(() {
-          errorMessage = apiResponse['message'] ?? 'Failed to load sub profiles';
+          errorMessage = apiResponse['message'] ?? 'Failed to load elder profiles';
         });
       }
     } catch (e) {
@@ -68,7 +68,7 @@ class _PrehomePageState extends State<PrehomePage> {
   }
 
   void _goToAddSubProfile() {
-    final userId = widget.response["content"]["user_id"] ?? 'Unknown';
+    final userId = widget.response["content"]["user_id"] ?? 'Something went wrong';
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -110,21 +110,21 @@ class _PrehomePageState extends State<PrehomePage> {
   }
 
   Future<void> _deleteSubProfile(dynamic subProfile) async {
-    final userId = widget.response["content"]["user_id"] ?? 'Unknown';
+    final userId = widget.response["content"]["user_id"] ?? 'Something went wrong';
     bool confirm = await showDialog<bool>(
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: const Text("Confirm Deletion"),
-              content: const Text("Are you sure you want to delete this sub profile?"),
+              title: const Text("ยืนยันการลบ"),
+              content: const Text("คุณแน่ใจหรือไม่ว่าต้องการลบโปรไฟล์ผู้สูงอายุนี้?"),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text("Cancel"),
+                  child: const Text("ยกเลิก"),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                  child: const Text("ลบ", style: TextStyle(color: Colors.red)),
                 ),
               ],
             );
@@ -143,12 +143,12 @@ class _PrehomePageState extends State<PrehomePage> {
       );
       if (apiResponse['isSuccess'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Sub Profile deleted successfully")),
+          const SnackBar(content: Text("ลบโปรไฟล์ผู้สูงอายุเรียบร้อยแล้ว!")),
         );
         _loadSubProfiles();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(apiResponse['message'] ?? "Deletion failed")),
+          SnackBar(content: Text(apiResponse['message'] ?? "เกิดข้อผิดพลาดในการลบโปรไฟล์")),
         );
       }
     } catch (e) {
@@ -169,11 +169,11 @@ class _PrehomePageState extends State<PrehomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final username = widget.response["content"]["username"] ?? 'Unknown';
+    final username = widget.response["content"]["username"] ?? 'Something went wrong';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('User - $username'),
+        title: Text('ยินดีต้อนรับคุณ $username'),
         backgroundColor: const Color(0xFF4E614D),
         actions: [
           IconButton(
@@ -207,15 +207,15 @@ class _PrehomePageState extends State<PrehomePage> {
           : errorMessage.isNotEmpty
               ? Center(child: Text(errorMessage))
               : subProfiles.isEmpty
-                  ? const Center(child: Text("No sub profiles found."))
+                  ? const Center(child: Text("ไม่พบโปรไฟล์ผู้สูงอายุ กรุณาสร้างโปรไฟล์ใหม่"))
                   : ListView.builder(
                       itemCount: subProfiles.length,
                       itemBuilder: (context, index) {
                         final sp = subProfiles[index];
                         if (sp is Map<String, dynamic>) {
-                          final nickname = sp['nickname'] ?? 'Unknown';
-                          final height = sp['height']?.toString() ?? 'N/A';
-                          final weight = sp['weight']?.toString() ?? 'N/A';
+                          final nickname = sp['nickname'] ?? 'ไม่ทราบ';
+                          final height = sp['height']?.toString() ?? 'ไม่ทราบ';
+                          final weight = sp['weight']?.toString() ?? 'ไม่ทราบ';
                           return Card(
                             margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             elevation: 2,
@@ -224,7 +224,7 @@ class _PrehomePageState extends State<PrehomePage> {
                             ),
                             child: ListTile(
                               title: Text(nickname),
-                              subtitle: Text('ส่วนสูง: $height, น้ำหนัก: $weight'),
+                              subtitle: Text('ส่วนสูง: $height ซม. , น้ำหนัก: $weight กิโลกรัม'),
                               onTap: () => _goToMainPage(sp),
                               // trailing: Row(
                               //   mainAxisSize: MainAxisSize.min,

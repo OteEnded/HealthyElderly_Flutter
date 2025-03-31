@@ -42,7 +42,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
         });
       } else {
         setState(() {
-          errorMessage = response['message'] ?? 'Failed to load menu items.';
+          errorMessage = response['message'] ?? 'เกิดข้อผิดพลาดในการโหลดเมนูอาหาร';
         });
       }
     } catch (e) {
@@ -91,7 +91,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Food Menus'),
+        title: const Text('แนะนำเมนูอาหาร'),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: isLoading
@@ -109,7 +109,7 @@ class _SuggestionPageState extends State<SuggestionPage> {
                   itemCount: menuItems.length,
                   itemBuilder: (context, index) {
                     final menu = menuItems[index] as Map<String, dynamic>;
-                    final menuName = menu['name'] ?? 'No Name';
+                    final menuName = menu['name'] ?? 'ไม่ทราบชื่อ';
                     final menuImage = menu['image'] ?? ''; 
                     return GestureDetector(
                       onTap: () {
@@ -208,7 +208,7 @@ class _MenuDetailPageState extends State<MenuDetailPage> {
         });
       } else {
         setState(() {
-          errorMessage = response['message'] ?? 'Failed to load menu details.';
+          errorMessage = response['message'] ?? 'เกิดข้อผิดพลาดในการโหลดรายละเอียดเมนู';
         });
       }
     } catch (e) {
@@ -255,9 +255,9 @@ class _MenuDetailPageState extends State<MenuDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final menuName = widget.menu['name'] ?? 'No Name';
+    final menuName = widget.menu['name'] ?? 'ไม่ทราบชื่อ';
     final description = menuDetail != null
-        ? menuDetail!['description'] ?? 'No description available.'
+        ? menuDetail!['description'] ?? 'ไม่ทราบรายละเอียด'
         : 'Loading details...';
     // สมมุติว่า menuDetail มี key: name, nutrient, ingredients, image1, image2
 
@@ -296,25 +296,25 @@ class _MenuDetailPageState extends State<MenuDetailPage> {
     const SizedBox(height: 16),
     // ข้อความรายละเอียด
     Text(
-      'Name: ${menuDetail?['name'] ?? 'No Name'}',
+      'เมนู: ${menuDetail?['name'] ?? 'ไม่ทราบชื่อ'}',
       style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       textAlign: TextAlign.left,
     ),
     const SizedBox(height: 8),
     Text(
-      'Nutrients: ${menuDetail?['nutrient'] ?? 'N/A'}',
+      'สารอาหาร: ${menuDetail?['nutrient'] ?? 'ไม่ทราบ'}',
       style: const TextStyle(fontSize: 16),
       textAlign: TextAlign.left,
     ),
     const SizedBox(height: 8),
     Text(
-      'Ingredients: ${menuDetail?['ingredients'] ?? 'N/A'}',
+      'วัตถุดิบ: ${menuDetail?['ingredients'] ?? 'ไม่ทราบ'}',
       style: const TextStyle(fontSize: 16),
       textAlign: TextAlign.left,
     ),
     const SizedBox(height: 16),
     Text(
-      'Why is good: ${menuDetail?['why_is_good'] ?? 'N/A'}',
+      'ทำไมเหมาะสม: ${menuDetail?['why_is_good'] ?? 'ไม่มีข้อมูล'}',
       style: const TextStyle(fontSize: 16),
       textAlign: TextAlign.left,
     ),

@@ -20,9 +20,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _genderController; // Gender (เพศสภาพ)
   // sex (เพศกำเนิด) ใช้ Dropdown
   String _sex = 'Male';
-  String _physicalActivityLevel = 'Low';
-  String _mealPreference = 'Vegeterian';
-  String _appetiteLevel = 'Low';
+  String _physicalActivityLevel = 'Moderate';
+  String _mealPreference = 'Non_Vegeterian';
+  String _appetiteLevel = 'Normal';
   late TextEditingController _favoriteFoodController;
   late TextEditingController _foodAllergiesController;
   late TextEditingController _drugAllergiesController;

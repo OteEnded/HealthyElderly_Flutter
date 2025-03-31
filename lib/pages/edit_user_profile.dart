@@ -33,7 +33,7 @@ class _EditUserDataPageState extends State<EditUserDataPage> {
     // ตรวจสอบว่ารหัสผ่านใหม่ทั้งสองตรงกันหรือไม่
     if (newPassword != confirmPassword) {
       setState(() {
-        _errorMessage = 'Passwords do not match.';
+        _errorMessage = 'รหัสผ่านใหม่ไม่ตรงกัน';
       });
       return;
     }
@@ -60,7 +60,7 @@ class _EditUserDataPageState extends State<EditUserDataPage> {
         Navigator.pop(context, response['content']);
       } else {
         setState(() {
-          _errorMessage = response['message'] ?? 'Update failed';
+          _errorMessage = response['message'] ?? 'เกิดข้อผิดพลาดในการอัปเดตข้อมูล';
         });
       }
     } catch (e) {
@@ -78,7 +78,7 @@ class _EditUserDataPageState extends State<EditUserDataPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Edit User Data"),
+        title: const Text("แก้ไขข้อมูลบัญชีหลัก"),
         backgroundColor: const Color(0xFF4E614D),
       ),
       body: Padding(
@@ -88,18 +88,18 @@ class _EditUserDataPageState extends State<EditUserDataPage> {
           children: [
             TextField(
               controller: _usernameController,
-              decoration: const InputDecoration(labelText: 'Username'),
+              decoration: const InputDecoration(labelText: 'ซื่อผู้ใช้'),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'New Password'),
+              decoration: const InputDecoration(labelText: 'รหัสผ่านใหม่'),
               obscureText: true,
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _confirmPasswordController,
-              decoration: const InputDecoration(labelText: 'Confirm New Password'),
+              decoration: const InputDecoration(labelText: 'ยืนยันรหัสผ่านใหม่'),
               obscureText: true,
             ),
             const SizedBox(height: 16),
@@ -114,7 +114,7 @@ class _EditUserDataPageState extends State<EditUserDataPage> {
                 onPressed: _isLoading ? null : _updateUserData,
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Update"),
+                    : const Text("ยืนยันการแก้ไขข้อมูลบัญชีหลัก"),
               ),
             ),
           ],

@@ -31,9 +31,9 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
   final TextEditingController _noteController = TextEditingController();
 
   // Dropdown สำหรับ physicalActivityLevel, mealPreference, appetiteLevel
-  String _physicalActivityLevel = 'Low';
-  String _mealPreference = 'Vegetarian';
-  String _appetiteLevel = 'Low';
+  String _physicalActivityLevel = 'Moderate';
+  String _mealPreference = 'Non_Vegetarian';
+  String _appetiteLevel = 'Normal';
 
   // สำหรับโรค (diseases)
   List<dynamic> _diseases = []; // รายการโรคที่ดึงมาจาก API (แต่ละรายการเป็น Map)
@@ -114,7 +114,7 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(apiResponse['message'] ?? 'Failed to save sub profile'),
+          content: Text(apiResponse['message'] ?? 'เกิดข้อผิดพลาดในการบันทึกข้อมูล'),
         ),
       );
     }
@@ -146,7 +146,7 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Elder Profile'),
+        title: const Text('เพิ่มโปรไฟล์ผู้สูงอายุ'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -170,7 +170,7 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
               TextField(
                 controller: _heightController,
                 decoration: InputDecoration(
-                  label: _buildRequiredLabel('ส่วนสูง (cm)'),
+                  label: _buildRequiredLabel('ส่วนสูง (ซม.)'),
                 ),
                 keyboardType: TextInputType.number,
               ),
@@ -178,7 +178,7 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
               TextField(
                 controller: _weightController,
                 decoration: InputDecoration(
-                  label: _buildRequiredLabel('น้ำหนัก (kg)'),
+                  label: _buildRequiredLabel('น้ำหนัก (กิโลกรัม)'),
                 ),
                 keyboardType: TextInputType.number,
               ),
@@ -234,7 +234,7 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
                     ],
                     onChanged: (val) {
                       setState(() {
-                        _physicalActivityLevel = val ?? 'Low';
+                        _physicalActivityLevel = val ?? 'Moderate';
                       });
                     },
                   ),
@@ -254,7 +254,7 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
                     ],
                     onChanged: (val) {
                       setState(() {
-                        _mealPreference = val ?? 'Vegetarian';
+                        _mealPreference = val ?? 'Non_Vegetarian';
                       });
                     },
                   ),
@@ -274,7 +274,7 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
                     ],
                     onChanged: (val) {
                       setState(() {
-                        _appetiteLevel = val ?? 'Low';
+                        _appetiteLevel = val ?? 'Normal';
                       });
                     },
                   ),
@@ -314,7 +314,7 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
               // Note
               TextField(
                 controller: _noteController,
-                decoration: const InputDecoration(labelText: 'Note'),
+                decoration: const InputDecoration(labelText: 'บันทึกเพิ่มเติม'),
                 keyboardType: TextInputType.text,
               ),
               const SizedBox(height: 16),
@@ -327,7 +327,7 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
               Wrap(
                 spacing: 8.0,
                 children: _diseases.map((disease) {
-                  final diseaseName = disease['thai_name'] ?? 'Unknown';
+                  final diseaseName = disease['thai_name'] ?? '[loading]';
                   final selected = _selectedDiseases.contains(diseaseName);
                   return FilterChip(
                     label: Text(diseaseName),
@@ -350,7 +350,7 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
               Center(
                 child: ElevatedButton(
                   onPressed: _saveSubProfile,
-                  child: const Text('Save Profile'),
+                  child: const Text('ยืนยันการบันทึกข้อมูลโปรไฟล์ผู้สูงอายุ'),
                 ),
               ),
             ],

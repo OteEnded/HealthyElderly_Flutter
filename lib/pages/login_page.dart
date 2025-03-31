@@ -34,7 +34,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   } else {
     setState(() {
-      _message = response['message'] ?? response['error'] ?? 'Login failed.';
+      _message = response['message'] ?? response['error'] ?? 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
     });
   }
 }
@@ -68,21 +68,21 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 16),
               TextField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'E-mail'),
+                decoration: const InputDecoration(labelText: 'อีเมล'),
               ),
               TextField(
                 controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
+                decoration: const InputDecoration(labelText: 'รหัสผ่าน'),
                 obscureText: true,
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _login,
-                child: const Text('Login'),
+                child: const Text('ลงชื่อเข้าใช้'),
               ),
               TextButton(
                 onPressed: _goToRegister,
-                child: const Text("Don't have an account? Register"),
+                child: const Text("ยังไม่มีบัญชีผู้ใช้? ลงทะเบียนที่นี่"),
               ),
               const SizedBox(height: 8),
               // Text(
