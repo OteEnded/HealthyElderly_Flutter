@@ -21,7 +21,7 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
   final TextEditingController _genderController = TextEditingController(); // เพศสภาพ
 
   // sex (เพศกำเนิด) ใช้ Dropdown
-  String _sex = 'Male';
+  String _sex = 'MALE';
 
   final TextEditingController _favoriteFoodController = TextEditingController();
   final TextEditingController _foodAllergiesController = TextEditingController();
@@ -31,9 +31,9 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
   final TextEditingController _noteController = TextEditingController();
 
   // Dropdown สำหรับ physicalActivityLevel, mealPreference, appetiteLevel
-  String _physicalActivityLevel = 'Moderate';
-  String _mealPreference = 'Non_Vegetarian';
-  String _appetiteLevel = 'Normal';
+  String _physicalActivityLevel = 'MODERATE';
+  String _mealPreference = 'NON_VEGETARIAN';
+  String _appetiteLevel = 'NORMAL';
 
   // สำหรับโรค (diseases)
   List<dynamic> _diseases = []; // รายการโรคที่ดึงมาจาก API (แต่ละรายการเป็น Map)
@@ -199,12 +199,12 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
                   DropdownButton<String>(
                     value: _sex,
                     items: const [
-                      DropdownMenuItem(value: 'Male', child: Text('ชาย')),
-                      DropdownMenuItem(value: 'Female', child: Text('หญิง')),
+                      DropdownMenuItem(value: 'MALE', child: Text('ชาย')),
+                      DropdownMenuItem(value: 'FEMALE', child: Text('หญิง')),
                     ],
                     onChanged: (val) {
                       setState(() {
-                        _sex = val ?? 'Male';
+                        _sex = val!;
                       });
                     },
                   ),
@@ -228,13 +228,13 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
                   DropdownButton<String>(
                     value: _physicalActivityLevel,
                     items: const [
-                      DropdownMenuItem(value: 'Low', child: Text('0-2วัน/สัปดาห์')),
-                      DropdownMenuItem(value: 'Moderate', child: Text('3-5วัน/สัปดาห์')),
-                      DropdownMenuItem(value: 'Active', child: Text('6-7วัน/สัปดาห์')),
+                      DropdownMenuItem(value: 'LOW', child: Text('0-2วัน/สัปดาห์')),
+                      DropdownMenuItem(value: 'MODERATE', child: Text('3-5วัน/สัปดาห์')),
+                      DropdownMenuItem(value: 'ACTIVE', child: Text('6-7วัน/สัปดาห์')),
                     ],
                     onChanged: (val) {
                       setState(() {
-                        _physicalActivityLevel = val ?? 'Moderate';
+                        _physicalActivityLevel = val!;
                       });
                     },
                   ),
@@ -248,13 +248,13 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
                   DropdownButton<String>(
                     value: _mealPreference,
                     items: const [
-                      DropdownMenuItem(value: 'Vegetarian', child: Text('ทานมังสวิรัติ')),
-                      DropdownMenuItem(value: 'Non_Vegetarian', child: Text('ทานปกติ')),
-                      DropdownMenuItem(value: 'Vegan', child: Text('ทานเจ')),
+                      DropdownMenuItem(value: 'VEGETARIAN', child: Text('ทานมังสวิรัติ')),
+                      DropdownMenuItem(value: 'NON_VEGETARIAN', child: Text('ทานปกติ')),
+                      DropdownMenuItem(value: 'VEGAN', child: Text('ทานเจ')),
                     ],
                     onChanged: (val) {
                       setState(() {
-                        _mealPreference = val ?? 'Non_Vegetarian';
+                        _mealPreference = val!;
                       });
                     },
                   ),
@@ -268,9 +268,9 @@ class _SubProfileFormPageState extends State<SubProfileFormPage> {
                   DropdownButton<String>(
                     value: _appetiteLevel,
                     items: const [
-                      DropdownMenuItem(value: 'Low', child: Text('เบื่ออาหาร')),
-                      DropdownMenuItem(value: 'Normal', child: Text('ปกติ')),
-                      DropdownMenuItem(value: 'High', child: Text('ทานมากกว่าปกติ')),
+                      DropdownMenuItem(value: 'LOW', child: Text('เบื่ออาหาร')),
+                      DropdownMenuItem(value: 'NORMAL', child: Text('ปกติ')),
+                      DropdownMenuItem(value: 'HIGH', child: Text('ทานมากกว่าปกติ')),
                     ],
                     onChanged: (val) {
                       setState(() {

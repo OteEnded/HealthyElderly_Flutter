@@ -119,17 +119,50 @@ class _ProfilePageState extends State<ProfilePage> {
     String height = currentSubProfile['height']?.toString() ?? 'N/A';
     String weight = currentSubProfile['weight']?.toString() ?? 'N/A';
     String age = currentSubProfile['age']?.toString() ?? 'N/A';
-    String sex = currentSubProfile['sex'] ?? 'N/A';
-    String gender = currentSubProfile['gender'] ?? 'N/A';
-    String physicalActivity = currentSubProfile['physical_activity_level'] ?? 'N/A';
-    String mealPreference = currentSubProfile['meal_preferences'] ?? 'N/A';
-    String appetiteLevel = currentSubProfile['appetite_level'] ?? 'N/A';
+
+
     String favoriteFood = currentSubProfile['favorite_food'] ?? '';
     String foodAllergies = currentSubProfile['food_allergies'] ?? '';
     String drugAllergies = currentSubProfile['drug_allergies'] ?? '';
     String medications = currentSubProfile['medications'] ?? '';
     String otherConditions = currentSubProfile['other_conditions'] ?? '';
     String note = currentSubProfile['carer_notes'] ?? '';
+
+    String sex = (currentSubProfile['sex']?.toString().toUpperCase() ?? 'N/A');
+  if (sex == 'MALE') {
+    sex = 'ชาย';
+  } else if (sex == 'FEMALE') {
+    sex = 'หญิง';
+  }
+
+  String gender = currentSubProfile['gender'] ?? 'N/A';
+
+  String physicalActivity = (currentSubProfile['physical_activity_level']?.toString().toUpperCase() ?? 'N/A');
+  if (physicalActivity == 'LOW') {
+    physicalActivity = '0-2วัน/สัปดาห์';
+  } else if (physicalActivity == 'MODERATE') {
+    physicalActivity = '3-5วัน/สัปดาห์';
+  } else if (physicalActivity == 'ACTIVE') {
+    physicalActivity = '6-7วัน/สัปดาห์';
+  }
+
+  String mealPreference = (currentSubProfile['meal_preferences']?.toString().toUpperCase() ?? 'N/A');
+  if (mealPreference == 'VEGETARIAN') {
+    mealPreference = 'ทานมังสวิรัติ';
+  } else if (mealPreference == 'NON_VEGETARIAN') {
+    mealPreference = 'ทานปกติ';
+  } else if (mealPreference == 'VEGAN') {
+    mealPreference = 'ทานเจ';
+  }
+
+  String appetiteLevel = (currentSubProfile['appetite_level']?.toString().toUpperCase() ?? 'N/A');
+  if (appetiteLevel == 'LOW') {
+    appetiteLevel = 'เบื่ออาหาร';
+  } else if (appetiteLevel == 'NORMAL') {
+    appetiteLevel = 'ปกติ';
+  } else if (appetiteLevel == 'HIGH') {
+    appetiteLevel = 'ทานมากกว่าปกติ';
+  }
 
     // ดึงข้อมูลโรคที่เลือกไว้ (elder_medical_conditions) ซึ่งเป็น List ของ Map
     List<dynamic> diseasesList = currentSubProfile['elder_medical_conditions'] ?? [];
